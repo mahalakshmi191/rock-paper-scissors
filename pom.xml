@@ -15,7 +15,6 @@
 <properties>
   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   <maven.compiler.source>21</maven.compiler.source>
-  <maven.compiler.target>21</maven.compiler.target>
 </properties>
 
   <dependencies>
@@ -28,10 +27,13 @@
   </dependencies>
 
   <build>
-    <finalName>roshambo</finalName>
-    <plugins>
+  <finalName>roshambo</finalName>
+  <plugins>
+    <!-- all your plugins here -->
+  </plugins>
+      </build>
 
-      <!-- ✅ Compiler Plugin for Java 21 -->
+      <!--  Compiler Plugin for Java 21 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
