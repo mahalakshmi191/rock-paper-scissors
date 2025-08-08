@@ -15,6 +15,12 @@ node {
       ]
    }
 
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
    stage('Compile'){
       build job: 'Compile-RPS'
    }
