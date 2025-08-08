@@ -1,19 +1,5 @@
-node {
-   
-   stage('Version') { 
-      build job: 'Version Check'
-   }
-
-   stage('Environment') {
-      build job: 'Enviro-Check'
-   }
-
-   stage('Document') {
-      build job: 'Generate-JavaDoc', parameters: [
-         booleanParam(name: 'generate_javadoc', value: false),
-         stringParam(name: 'javadoc_location', value: 'C:\\_javadoc00')
-      ]
-   }
+pipeline {
+    agent any
 
     stages {
         stage('Clean Workspace') {
@@ -21,37 +7,35 @@ node {
                 cleanWs()
             }
         }
-   stage('Compile'){
-      build job: 'Compile-RPS'
-   }
 
-stage('Build') {
-    steps {
-        sh 'mvn clean package'
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/mahalakshmi191/rock-paper-scissors.git'
+            }
+        }
+
+        stage('Compile') {
+            steps {
+                build job: 'Compile-RPS'
+            }
+        }
+
+        stage('Build WAR') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Archive WAR') {
+            steps {
+                archiveArtifacts artifacts: 'target/*.war', fingerprint: true
+            }
+        }
+
+        stage('Static Code Analysis') {
+            steps {
+                build job: 'static-code-analysis'
+            }
+        }
     }
-}
-   
-   stage('Archive WAR') {
-      archiveArtifacts artifacts: 'target/*.war', fingerprint: true
-   }
-
-   stage('Acceptance') {
-      def response = input message: 'UAT Tests',
-         parameters: [choice(choices: 'Pass\nFail', description: 'Proceed or Abort?', name: 'Pass or Fail?')]
-   }
-   
-   stage('Almost Done!') {
-      def response = input message: 'Whatcha think?',
-         parameters: [choice(choices: 'Yes\nNo', description: 'Proceed or Abort?', name: 'Wasn\'t that cool?')]
-        
-      if (response == "Yes") {
-         echo "I agree!"
-      } else {
-         echo "You are hard to please."
-      }
-   }
-	
-   stage('Static Code Analysis') {
-      build job: 'static-code-analysis'
-   }
 }
