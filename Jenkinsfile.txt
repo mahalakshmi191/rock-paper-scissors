@@ -1,0 +1,9 @@
+
+pipeline {
+    agent any
+stage('Archive WAR') {
+    steps {
+        archiveArtifacts artifacts: 'target/*.war', fingerprint: true
+    }
+}
+}
