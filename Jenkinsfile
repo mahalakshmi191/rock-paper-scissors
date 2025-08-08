@@ -44,20 +44,6 @@ node {
    stage('Static Code Analysis'){
       // build job: 'static-code-analysis'
    }
-	stage('Build WAR') {
-    steps {
-        echo 'Building WAR file...'
-        
-        // If using Linux agents instead, replace with:
-         sh 'mvn clean install'
-    }
-}
-
-stage('Archive WAR') {
-    steps {
-        echo 'Archiving WAR file...'
-        archiveArtifacts artifacts: 'target/*.war', fingerprint: true
-    }
-}
+	
 
 }
