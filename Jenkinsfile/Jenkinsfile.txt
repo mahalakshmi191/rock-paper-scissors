@@ -18,6 +18,12 @@ node {
    stage('Compile'){
       build job: 'Compile-RPS'
    }
+
+stage('Build') {
+    steps {
+        sh 'mvn clean package'
+    }
+}
    
    stage('Archive WAR') {
       archiveArtifacts artifacts: 'target/*.war', fingerprint: true
