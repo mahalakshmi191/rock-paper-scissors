@@ -16,6 +16,11 @@ pipeline {
             }
         }
 
+     stage('Clean') {
+    steps {
+        sh 'mvn clean'
+    }
+}
         stage('Build WAR') {
             steps {
                 withEnv(["PATH+MAVEN=${MAVEN_HOME}/bin", "JAVA_HOME=${JAVA_HOME}"]) {
