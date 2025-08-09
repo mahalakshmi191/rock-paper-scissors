@@ -1,77 +1,46 @@
-
-
-
-
-
-
-
-
-
-
-
 pipeline {
     agent any
 
-    stages {
-        stage('Clean Workspace') {
-            steps {
-                cleanWs()
-            }
-        }
+    environment {
+        MAVEN_HOME = tool name: 'Maven-3.9.6', type: 'maven'
+        JAVA_HOME = tool name: 'JDK-21', type: 'jdk'
+        TOMCAT_URL = 'http://localhost:8080/manager/text'
+        TOMCAT_CRED = credentials('tomcat-admin-cred')
+        WAR_NAME = 'roshambo.war'
+    }
 
-        stage('Checkout Code') {
+    stages {
+        stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/mahalakshmi191/rock-paper-scissors.git'
+                checkout scm
             }
         }
 
         stage('Build WAR') {
             steps {
-                sh 'mvn clean package'
+                withEnv(["PATH+MAVEN=${MAVEN_HOME}/bin", "JAVA_HOME=${JAVA_HOME}"]) {
+                    sh 'mvn clean package'
+                }
             }
         }
 
-        stage('Archive WAR') {
+        stage('Deploy to Tomcat') {
             steps {
-                archiveArtifacts artifacts: 'target/*.war', fingerprint: true
+                sh """
+                    curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
+                    --upload-file target/${WAR_NAME} \
+                    "${TOMCAT_URL}/deploy?path=/myapp&update=true"
+                """
             }
         }
     }
+
+    post {
+        success {
+            echo "Deployment successful!"
+        }
+        failure {
+            echo "Deployment failed!"
+        }
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
