@@ -6,21 +6,28 @@ pipeline {
         JAVA_HOME = tool name: 'JDK-21', type: 'jdk'
         TOMCAT_URL = 'http://localhost:8080/manager/text'
         TOMCAT_CRED = credentials('tomcat-admin-cred')
-        WAR_NAME = 'roshambo.war'
+        WAR_NAME = 'roshambo-1.0-SNAPSHOT.war' // match your actual pom.xml output
     }
 
     stages {
+        stage('Wipe Workspace') {
+            steps {
+                deleteDir() // Clears ALL old files from Jenkins workspace
+            }
+        }
+
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-     stage('Clean') {
-    steps {
-        sh 'mvn clean'
-    }
-}
+        stage('Clean') {
+            steps {
+                sh 'mvn clean'
+            }
+        }
+
         stage('Build WAR') {
             steps {
                 withEnv(["PATH+MAVEN=${MAVEN_HOME}/bin", "JAVA_HOME=${JAVA_HOME}"]) {
