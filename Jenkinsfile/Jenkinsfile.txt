@@ -1,3 +1,14 @@
+
+
+
+
+
+
+
+
+
+
+
 pipeline {
     agent any
 
@@ -14,15 +25,9 @@ pipeline {
             }
         }
 
-        stage('Compile') {
-            steps {
-                build job: 'Compile-RPS'
-            }
-        }
-
         stage('Build WAR') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh 'mvn clean package'
             }
         }
 
@@ -31,11 +36,42 @@ pipeline {
                 archiveArtifacts artifacts: 'target/*.war', fingerprint: true
             }
         }
-
-        stage('Static Code Analysis') {
-            steps {
-                build job: 'static-code-analysis'
-            }
-        }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
