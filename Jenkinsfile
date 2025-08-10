@@ -34,16 +34,20 @@ pipeline {
                     sh 'mvn clean package'
                 }
             }
-        }
-
-        stage('Deploy WAR') {
-            steps {
-                echo "Deploying new WAR..."
-                sh """
-                    curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
-                    --upload-file target/${WAR_NAME} \
-                    "${TOMCAT_URL}/deploy?path=${APP_CONTEXT}&update=true"
-                """
+            post {
+                success {
+                    echo "Build successful — starting deployment..."
+                    script {
+                        sh """
+                            curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
+                            --upload-file target/${WAR_NAME} \
+                            "${TOMCAT_URL}/deploy?path=${APP_CONTEXT}&update=true"
+                        """
+                    }
+                }
+                failure {
+                    echo "Skipping deployment — build failed!"
+                }
             }
         }
     }
