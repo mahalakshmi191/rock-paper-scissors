@@ -2,48 +2,32 @@ pipeline {
     agent any
 
     environment {
-        MAVEN_HOME = tool name: 'Maven-3.9.6', type: 'maven'
-        JAVA_HOME = tool name: 'JDK-21', type: 'jdk'
         TOMCAT_URL = 'http://localhost:8080/manager/text'
-        TOMCAT_CRED = credentials('tomcat-admin-cred')
-        WAR_NAME = 'roshambo.war' // Match actual build name
-        APP_PATH = '/myapp' // Tomcat context path
+        TOMCAT_CRED = credentials('tomcat-admin-cred')  // Jenkins credentials ID
+        WAR_NAME = 'roshambo.war'
+        WAR_PATH = "C:/Users/Admin/rock-paper-scissors/target/${WAR_NAME}"
     }
 
     stages {
-        stage('Wipe Workspace') {
-            steps {
-                deleteDir() // Removes all files in Jenkins workspace
-            }
-        }
-
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Clean') {
+        // Optional: Clean & build if you want to refresh the WAR
+         stage('Build') {
             steps {
-                sh 'mvn clean'
-            }
-        }
-
-        stage('Build WAR') {
-            steps {
-                withEnv(["PATH+MAVEN=${MAVEN_HOME}/bin", "JAVA_HOME=${JAVA_HOME}"]) {
-                    sh 'mvn package'
-                }
-            }
+               sh "mvn clean package"
+           }
         }
 
         stage('Undeploy Old App') {
             steps {
                 sh """
                     curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
-                    "${TOMCAT_URL}/undeploy?path=${APP_PATH}" || true
+                    "${TOMCAT_URL}/undeploy?path=/myapp"
                 """
-                echo "Old version undeployed (if existed)."
             }
         }
 
@@ -51,8 +35,8 @@ pipeline {
             steps {
                 sh """
                     curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
-                    --upload-file target/${WAR_NAME} \
-                    "${TOMCAT_URL}/deploy?path=${APP_PATH}&update=true"
+                    --upload-file "${WAR_PATH}" \
+                    "${TOMCAT_URL}/deploy?path=/myapp&update=true"
                 """
             }
         }
@@ -60,10 +44,10 @@ pipeline {
 
     post {
         success {
-            echo "Deployment successful!"
+            echo "Deployment completed successfully!"
         }
         failure {
-            echo "Deployment failed!"
+            echo "Deployment failed."
         }
     }
 }
