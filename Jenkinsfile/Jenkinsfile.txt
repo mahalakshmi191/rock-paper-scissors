@@ -6,13 +6,14 @@ pipeline {
         JAVA_HOME = tool name: 'JDK-21', type: 'jdk'
         TOMCAT_URL = 'http://localhost:8080/manager/text'
         TOMCAT_CRED = credentials('tomcat-admin-cred')
-        WAR_NAME = 'roshambo-1.0-SNAPSHOT.war' // match your actual pom.xml output
+        WAR_NAME = 'roshambo.war' // Match actual build name
+        APP_PATH = '/myapp' // Tomcat context path
     }
 
     stages {
         stage('Wipe Workspace') {
             steps {
-                deleteDir() // Clears ALL old files from Jenkins workspace
+                deleteDir() // Removes all files in Jenkins workspace
             }
         }
 
@@ -36,12 +37,22 @@ pipeline {
             }
         }
 
-        stage('Deploy to Tomcat') {
+        stage('Undeploy Old App') {
+            steps {
+                sh """
+                    curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
+                    "${TOMCAT_URL}/undeploy?path=${APP_PATH}" || true
+                """
+                echo "Old version undeployed (if existed)."
+            }
+        }
+
+        stage('Deploy New WAR') {
             steps {
                 sh """
                     curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
                     --upload-file target/${WAR_NAME} \
-                    "${TOMCAT_URL}/deploy?path=/myapp&update=true"
+                    "${TOMCAT_URL}/deploy?path=${APP_PATH}&update=true"
                 """
             }
         }
