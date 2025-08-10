@@ -2,55 +2,47 @@ pipeline {
     agent any
 
     environment {
-        MAVEN_HOME = tool name: 'Maven-3.9.6', type: 'maven'
-        JAVA_HOME  = tool name: 'JDK-21', type: 'jdk'
-
-        TOMCAT_URL = 'http://localhost:8080/manager/text'
-        TOMCAT_CRED = credentials('tomcat-admin-cred') // Jenkins stored credentials
-        WAR_NAME = 'roshambo.war'
-        CONTEXT_PATH = '/roshambo' // Web context in Tomcat
-        CATALINA_HOME = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0'
+        MAVEN_HOME   = tool name: 'Maven-3.9.6', type: 'maven'
+        JAVA_HOME    = tool name: 'JDK-21', type: 'jdk'
+        TOMCAT_URL   = 'http://localhost:8080/manager/text'
+        TOMCAT_CRED  = credentials('tomcat-admin-cred')
+        WAR_NAME     = 'roshambo.war'
+        APP_CONTEXT  = '/roshambo'  // URL path of your app
     }
 
     stages {
-        stage('Checkout Source') {
+        stage('Checkout') {
             steps {
-                echo "Pulling source code..."
                 checkout scm
             }
         }
 
-        stage('Remove Old WAR from Tomcat') {
+        stage('Undeploy Old WAR') {
             steps {
-                echo "Undeploying from Tomcat..."
-                bat """
-                    curl -u %TOMCAT_CRED_USR%:%TOMCAT_CRED_PSW% ^
-                    "%TOMCAT_URL%/undeploy?path=%CONTEXT_PATH%"
-                """
-                echo "Deleting WAR from webapps folder..."
-                bat """
-                    del /Q "%CATALINA_HOME%\\webapps\\%WAR_NAME%"
-                    rmdir /S /Q "%CATALINA_HOME%\\webapps\\roshambo"
+                echo "Removing old deployment..."
+                sh """
+                    curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
+                    "${TOMCAT_URL}/undeploy?path=${APP_CONTEXT}" || true
                 """
             }
         }
 
-        stage('Clean & Build WAR') {
+        stage('Build WAR') {
             steps {
-                echo "Building fresh WAR..."
-                withEnv(["PATH+MAVEN=${MAVEN_HOME}\\bin", "JAVA_HOME=${JAVA_HOME}"]) {
-                    bat 'mvn clean package'
+                echo "Building WAR..."
+                withEnv(["PATH+MAVEN=${MAVEN_HOME}/bin", "JAVA_HOME=${JAVA_HOME}"]) {
+                    sh 'mvn clean package'
                 }
             }
         }
 
-        stage('Deploy Fresh WAR') {
+        stage('Deploy WAR') {
             steps {
-                echo "Deploying WAR to Tomcat..."
-                bat """
-                    curl -u %TOMCAT_CRED_USR%:%TOMCAT_CRED_PSW% ^
-                    --upload-file target\\%WAR_NAME% ^
-                    "%TOMCAT_URL%/deploy?path=%CONTEXT_PATH%&update=true"
+                echo "Deploying new WAR..."
+                sh """
+                    curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
+                    --upload-file target/${WAR_NAME} \
+                    "${TOMCAT_URL}/deploy?path=${APP_CONTEXT}&update=true"
                 """
             }
         }
