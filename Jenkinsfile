@@ -7,7 +7,7 @@ pipeline {
         TOMCAT_URL   = 'http://localhost:8080/manager/text'
         TOMCAT_CRED  = credentials('tomcat-admin-cred')
         WAR_NAME     = 'roshambo-1.0-SNAPSHOT.war'
-        APP_CONTEXT  = '/roshambo'  // URL path of your app
+        APP_CONTEXT  = '/roshambo'
     }
 
     stages {
@@ -33,21 +33,21 @@ pipeline {
                 withEnv(["PATH+MAVEN=${MAVEN_HOME}/bin", "JAVA_HOME=${JAVA_HOME}"]) {
                     sh 'mvn clean package'
                 }
+                sh 'ls -l target'
             }
-            post {
-                success {
-                    echo "Build successful — starting deployment..."
-                    script {
-                        sh """
-                            curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
-                            --upload-file target/${WAR_NAME} \
-                            "${TOMCAT_URL}/deploy?path=${APP_CONTEXT}&update=true"
-                        """
-                    }
-                }
-                failure {
-                    echo "Skipping deployment — build failed!"
-                }
+        }
+
+        stage('Deploy WAR') {
+            when {
+                expression { fileExists("target/${WAR_NAME}") }
+            }
+            steps {
+                echo "Deploying WAR to Tomcat..."
+                sh """
+                    curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
+                    --upload-file target/${WAR_NAME} \
+                    "${TOMCAT_URL}/deploy?path=${APP_CONTEXT}&update=true"
+                """
             }
         }
     }
