@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        MAVEN_HOME   = tool name: 'Maven-3.9.6', type: 'maven'
+        MAVEN_HOME   = tool name: 'Maven-3.9.11', type: 'maven'
         JAVA_HOME    = tool name: 'JDK-21', type: 'jdk'
         TOMCAT_URL   = 'http://localhost:8080/manager/text'
         TOMCAT_CRED  = credentials('tomcat-admin-cred')
