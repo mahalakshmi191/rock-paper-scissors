@@ -52,6 +52,16 @@ pipeline {
         }
     }
 
+stage('Deploy WAR') {
+    steps {
+        sh '''
+            curl -u admin:password \
+                 -T target/roshambo.war \
+                 "http://localhost:8080/manager/text/deploy?path=/roshambo&update=true"
+        '''
+    }
+}
+
     post {
         success {
             echo "✅ Deployment successful!"
