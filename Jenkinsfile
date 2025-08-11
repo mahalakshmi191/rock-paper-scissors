@@ -6,7 +6,7 @@ pipeline {
         JAVA_HOME    = tool name: 'JDK-21', type: 'jdk'
         TOMCAT_URL   = 'http://localhost:8080/manager/text'
         TOMCAT_CRED  = credentials('tomcat-admin-cred')
-        WAR_NAME     = 'roshambo-1.0-SNAPSHOT.war'
+        WAR_NAME     = 'roshambo.war'
         APP_CONTEXT  = '/roshambo'
     }
 
