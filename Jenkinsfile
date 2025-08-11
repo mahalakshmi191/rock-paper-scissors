@@ -38,29 +38,23 @@ pipeline {
         }
 
         stage('Deploy WAR') {
-            when {
-                expression { fileExists("target/${WAR_NAME}") }
-            }
             steps {
-                echo "Deploying WAR to Tomcat..."
-                sh """
-                    curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
-                    --upload-file target/${WAR_NAME} \
-                    "${TOMCAT_URL}/deploy?path=${APP_CONTEXT}&update=true"
-                """
+                script {
+                    def warFile = "target/${WAR_NAME}"
+                    if (fileExists(warFile)) {
+                        echo "Deploying WAR to Tomcat..."
+                        sh """
+                            curl -u ${TOMCAT_CRED_USR}:${TOMCAT_CRED_PSW} \
+                            --upload-file ${warFile} \
+                            "${TOMCAT_URL}/deploy?path=${APP_CONTEXT}&update=true"
+                        """
+                    } else {
+                        error "WAR file not found: ${warFile}"
+                    }
+                }
             }
         }
     }
-
-stage('Deploy WAR') {
-    steps {
-        sh '''
-            curl -u admin:password \
-                 -T target/roshambo.war \
-                 "http://localhost:8080/manager/text/deploy?path=/roshambo&update=true"
-        '''
-    }
-}
 
     post {
         success {
