@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+
+    environment {
+        TOMCAT_URL = "http://your-tomcat-server:8081/manager/text"
+        TOMCAT_APP_NAME = "roshambo.war"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git credentialsId: 'git-creds',
+                    url: 'https://github.com/mahalakshmi191/rock-paper-scissor'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+
+        stage('Deploy to Tomcat') {
+            steps {
+                script {
+                    def warFile = "target/${TOMCAT_APP_NAME}.war"
+
+                    sh """
+                        curl --upload-file ${warFile} \
+                        -u deploy:your-password \
+                        "${TOMCAT_URL}/deploy?path=/${TOMCAT_APP_NAME}&update=true"
+                    """
+                }
+            }
+        }
+    }
+}
