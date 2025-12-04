@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         TOMCAT_URL = "http://your-tomcat-server:8081/manager/text"
-        TOMCAT_APP_NAME = "roshambo.war"
+        TOMCAT_APP_NAME = "roshambo"
     }
 
     stages {
