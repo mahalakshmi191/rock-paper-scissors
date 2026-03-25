@@ -6,7 +6,7 @@ pipeline {
     }
 
     parameters {
-        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Branch to build')
+        string(name: 'BRANCH_NAME', defaultValue: 'master', description: 'Branch to build')
         string(name: 'SLEEP_TIME', defaultValue: '10', description: 'Sleep time before integration test')
         string(name: 'APP_PORT', defaultValue: '8080', description: 'Application port')
     }
