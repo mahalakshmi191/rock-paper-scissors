@@ -24,7 +24,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'mvn clean package -DskipTests=true'
-                archiveArtifacts 'target/hello-demo-*.jar'
+                archiveArtifacts 'target/*.war'
             }
         }
 
@@ -39,7 +39,7 @@ pipeline {
         stage('Deployment') {
             steps {
                 // Start app in background
-                sh 'nohup java -jar target/hello-demo-*.jar &'
+               sh 'nohup java -jar target/roshambo.war &'
             }
         }
 
