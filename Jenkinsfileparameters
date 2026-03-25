@@ -2,21 +2,22 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven-3.9.11'
+        maven 'Maven-3.9.11'  // Must match the name in Jenkins Global Tool Configuration
     }
 
     parameters {
-        string(name: 'BRANCH_NAME', defaultValue: 'main')
-        string(name: 'SLEEP_TIME', defaultValue: '10')
-        string(name: 'APP_PORT', defaultValue: '8080')
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Branch to build')
+        string(name: 'SLEEP_TIME', defaultValue: '10', description: 'Sleep time before integration test')
+        string(name: 'APP_PORT', defaultValue: '8080', description: 'Application port')
     }
 
     stages {
+
         stage('MAVEN VERSION') {
             steps {
-                sh 'echo print maven version'
+                sh 'echo Printing Maven version'
                 sh 'mvn -version'
-                sh "echo sleep-Time - ${params.SLEEP_TIME}, Port - ${params.APP_PORT}, Branch - ${params.BRANCH_NAME}"
+                sh "echo Sleep-Time: ${params.SLEEP_TIME}, Port: ${params.APP_PORT}, Branch: ${params.BRANCH_NAME}"
             }
         }
 
@@ -30,17 +31,19 @@ pipeline {
         stage('Test') {
             steps {
                 sh 'mvn test'
+                // Allow empty results if there are no tests yet
                 junit testResults: 'target/surefire-reports/TEST-*.xml', allowEmptyResults: true
             }
         }
 
         stage('Deployment') {
             steps {
+                // Start app in background
                 sh 'nohup java -jar target/hello-demo-*.jar &'
             }
         }
 
-        stage('Integration test') {
+        stage('Integration Test') {
             steps {
                 sh "sleep ${params.SLEEP_TIME}"
                 sh "curl -s http://localhost:${params.APP_PORT}/hello"
